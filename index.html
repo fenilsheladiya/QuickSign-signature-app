@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>quick-sign</title>
+    <style>
+.main{
+    position: absolute;
+    top : 50%;
+    left: 50%;
+    transform: translate(-50%,-50%);
+}
+        .canvas{
+            border: 1px solid black;
+            
+        }
+        .top, .bottom{
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            margin: 20px 0 20px 0;
+        }
+        .block,input,select,button{
+            width: 80%;
+        }
+        
+        .top>.block{
+            margin: 10px;
+        }
+        .bottom>button{
+            margin: 10px;
+        }
+        .block>p{
+            margin: 10px auto;
+            width: 50%;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <link rel="icon" href="favicon-16x16.png">
+</head>
+<body>
+    <div class="main">
+        <div class="top">
+            <div class="colorspart">
+                    <p>text color picker</p>
+                    <input type="color" class="form=control" id="textcolorpicker">
+            </div>
+            <div class="colorspart">
+                <p>Background color picker</p>
+                <input type="color" class="form=control" id="bgcolorpicker">
+            </div>
+            <div class="colorspart">
+                <p>Font Size</p>
+                <select name="" id="fontsize">
+                    <option value="8">8</option>
+                    <option value="9">9</option>
+                    <option value="10">10</option>
+                    <option value="11">11</option>
+                </select>
+            </div>
+            <div class="colorspart">
+                <p>Choose Border Style</p>
+                <select id="borderstyle">
+                    <option value="solid">Solid</option>
+                    <option value="dashed">Dashed</option>
+                    <option value="dotted">Dotted</option>
+                    <option value="double">Double</option>
+                </select>
+            </div>
+            
+        </div>
+        <canvas class="canvas" id="mycanvas" width="800" height="500">
+
+        </canvas>
+        <div class="bottom">
+            <button  class="btn btn-danger" id="clearbutton">Clear</button>
+            <button  class="btn btn-success" id="savebutton">save & download</button>
+            <button  class="btn btn-warning" id="retrievebutton">retrieve saved signature</button>
+        </div>
+    </div>
+    <script>
+        
+        const txtcolorpicker = document.getElementById("textcolorpicker");
+        const bgcolorpicker = document.getElementById("bgcolorpicker");
+        const fontsize = document.getElementById("fontsize");
+        const canvas = document.getElementById("mycanvas");
+        const clearbutton = document.getElementById("clearbutton");
+        const savebutton = document.getElementById("savebutton");
+        const retrievebutton = document.getElementById("retrievebutton");
+        const borderstyle = document.getElementById("borderstyle");
+
+
+
+        //In the HTML5 <canvas> element, the getContext('2d') method is used to get the 2D rendering context for drawing on the canvas. It returns an object that provides methods and properties for drawing and manipulating graphics on the canvas.
+        const ctx = canvas.getContext('2d');
+
+        txtcolorpicker.addEventListener('change',(e) =>{   // change the color
+            ctx.strokeStyle = e.target.value;
+            ctx.fillStyle = e.target.value; //fill
+        })
+
+        canvas.addEventListener('mousedown',(e)=>{
+            isDrawing = true;
+            lastX = event.offsetx;
+            lastY = event.offsetY;
+        })
+        
+        canvas.addEventListener('mousemove',(e)=>{
+           if(isDrawing){ 
+            ctx.beginPath() //begin drawing
+            ctx.moveTo(lastX,lastY); //starting point to end point move
+            ctx.lineTo(e.offsetX,e.offsetY);// for line draw
+            ctx.stroke(); // draw starting
+
+            lastX  = e.offsetX;  //curretn mouse position
+            lastY = e.offsetY;
+           }  
+        })
+
+        //for close draw when mouse up
+        canvas.addEventListener('mouseup', (e) =>{
+            isDrawing = false;
+          
+        })
+
+        bgcolorpicker.addEventListener('change',(e)=>{
+            ctx.fillStyle = e.target.value; //fill
+            ctx.fillRect(0,0,canvas.width,canvas.height); //fill background
+        })
+
+   
+        
+        fontsize.addEventListener('change',(e)=>{
+            //change font size
+            ctx.lineWidth = e.target.value; 
+        })
+
+        clearbutton.addEventListener('click',(e)=>{
+            ctx.clearRect(0,0,canvas.width,canvas.height)
+        })
+
+        savebutton.addEventListener('click',(e) =>{
+            localStorage.setItem('canvasContents',canvas.toDataURL()); //canvascontent change to in the url
+            
+            let link = document.createElement('a');
+
+            link.download = 'mycanvas.png';
+
+            link.href = canvas.toDataURL();
+
+            link.click();
+        })
+
+        retrievebutton.addEventListener('click',(e)=>{
+            let savedcanvas = localStorage.getItem('canvasContents');
+
+            if(savedcanvas){
+                let img = new Image(); //new image object create
+                img.src = savedcanvas;  //image source change to saved canvas content
+
+                ctx.drawImage(img,0,0);//same image draw
+            }
+        })
+    </script>
+</body>
+</html>
